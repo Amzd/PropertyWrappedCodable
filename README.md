@@ -5,6 +5,7 @@ Nice syntax for defaults and custom keys with Codable using Property Wrappers an
 **Note:** About 4x slower than normal Codable
 
 ```swift
+// initialising 1000x takes ~ 0.04s
 struct WrappedExample: PropertyWrappedCodable {
     @CodableValue var name: String
     @CodableValue var id: String = "Default"
@@ -17,7 +18,7 @@ struct WrappedExample: PropertyWrappedCodable {
 vs
 
 ```swift
-
+// initialising 1000x takes ~ 0.01s
 struct CodableExample: Codable {
     var name: String
     var id: String
