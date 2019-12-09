@@ -2,9 +2,9 @@ import XCTest
 @testable import PropertyWrappedCodable
 
 struct WrappedExample: PropertyWrappedCodable {
-    @CodableValue() var name: String
-    @CodableValue() var id: String = "Default"
-    @CodableValue() var dog: String?
+    @CodableValue var name: String
+    @CodableValue var id: String = "Default"
+    @CodableValue var dog: String?
     @CodableValue(key: "is_active") var isActive: Bool
     
     init(nonWrappedValuesFrom decoder: Decoder) throws {}
