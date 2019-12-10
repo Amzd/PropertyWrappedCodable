@@ -53,7 +53,7 @@ class Pet: FamilyCodable {
     
     required init(nonWrappedValuesFrom decoder: Decoder) throws { }
     
-    static var discriminatorKey: CodingKey = AnyCodingKey(stringValue: "type")
+    static var discriminatorKey = "type"
     
     final class func familyMember(for value: String) throws -> Codable.Type {
         switch value {
