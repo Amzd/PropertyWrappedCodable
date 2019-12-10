@@ -4,20 +4,13 @@ protocol CodableValueProtocol {
 }
 
 @propertyWrapper public struct CodableValue<Value: Codable>: CodableValueProtocol {
-    private class Holder<Value> {
-        var value: Value?
-        init(_ value: Value? = nil) {
-            self.value = value
-        }
-    }
-    
     public var wrappedValue: Value {
-        get { return holder.value ?? { fatalError("Use inside PropertyWrappedCodable or FamilyCodable not Codable!") }() }
-        set { holder = Holder(newValue) } // Create new holder so struct mutates
+        get { return box.value ?? { fatalError("Use inside PropertyWrappedCodable or FamilyCodable not Codable!") }() }
+        set { box = StrongBox(newValue) } // Create new holder so struct mutates
     }
     
     private var key: String?
-    private var holder = Holder<Value>()
+    private var box = StrongBox<Value>()
     
     // MARK: - Custom key
     
@@ -43,15 +36,22 @@ protocol CodableValueProtocol {
         assert(label.first == "_")
         let codingKey = AnyCodingKey(stringValue: key ?? String(label.dropFirst()))
         
-        if holder.value == nil {
-            holder.value = try container.decode(Value.self, forKey: codingKey)
+        if box.value == nil {
+            box.value = try container.decode(Value.self, forKey: codingKey)
         } else if let value = try? container.decode(Value.self, forKey: codingKey) {
-            holder.value = value
+            box.value = value
         }
     }
     
     func encodeValue(with label: String, to container: inout KeyedEncodingContainer<AnyCodingKey>) throws {
         let codingKey = AnyCodingKey(stringValue: key ?? String(label.dropFirst()))
         try container.encode(wrappedValue, forKey: codingKey)
+    }
+}
+
+internal class StrongBox<Value> {
+    var value: Value?
+    init(_ value: Value? = nil) {
+        self.value = value
     }
 }
