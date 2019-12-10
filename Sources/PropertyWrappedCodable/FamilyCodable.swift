@@ -1,11 +1,12 @@
 public protocol FamilyCodable: PropertyWrappedCodable {
+    associatedtype DiscriminatorKey: CodingKeyConvertable
     associatedtype DiscriminatorValue: Codable
     /// Returns a family member (subclass) for discriminator value.
     ///  Throw when the discriminator is wrong. This will stop the init.
     ///  Return Self.self if you want to init just the Family class rather than a member class.
     static func familyMember(for value: DiscriminatorValue) throws -> Codable.Type
     /// The key for the family discriminator value
-    static var discriminatorKey: CodingKey { get }
+    static var discriminatorKey: DiscriminatorKey { get }
 }
 
 public enum FamilyCodableError: Error {
@@ -21,7 +22,7 @@ public extension FamilyCodable {
     /// Call this when you override `init(from:)`
     init(familyFrom decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: AnyCodingKey.self)
-        let discriminator = try container.decode(DiscriminatorValue.self, forKey: AnyCodingKey(Self.discriminatorKey))
+        let discriminator = try container.decode(DiscriminatorValue.self, forKey: Self.discriminatorKey.toAnyCodingKey())
         let member = try Self.familyMember(for: discriminator)
         if !(member.self is Self.Type) {
             // not a subclass
