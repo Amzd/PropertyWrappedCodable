@@ -16,6 +16,53 @@
 					<string>Local Baseline</string>
 				</dict>
 			</dict>
+			<key>testMeasureCodable()</key>
+			<dict>
+				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
+				<dict>
+					<key>baselineAverage</key>
+					<real>0.00856</real>
+					<key>baselineIntegrationDisplayName</key>
+					<string>Local Baseline</string>
+				</dict>
+				<key>com.apple.dt.XCTMetric_Clock.time.monotonic</key>
+				<dict>
+					<key>baselineAverage</key>
+					<real>0.0088</real>
+					<key>baselineIntegrationDisplayName</key>
+					<string>10 Dec 2019 at 09:43:14</string>
+				</dict>
+			</dict>
+			<key>testMeasureWrapped()</key>
+			<dict>
+				<key>com.apple.XCTPerformanceMetric_WallClockTime</key>
+				<dict>
+					<key>baselineAverage</key>
+					<real>0.0482</real>
+					<key>baselineIntegrationDisplayName</key>
+					<string>Local Baseline</string>
+				</dict>
+				<key>com.apple.dt.XCTMetric_Clock.time.monotonic</key>
+				<dict>
+					<key>baselineAverage</key>
+					<real>0.008</real>
+					<key>baselineIntegrationDisplayName</key>
+					<string>Local Baseline</string>
+				</dict>
+			</dict>
+		</dict>
+		<key>YAAFirebaseTests</key>
+		<dict>
+			<key>testMeasureYAA()</key>
+			<dict>
+				<key>com.apple.dt.XCTMetric_Clock.time.monotonic</key>
+				<dict>
+					<key>baselineAverage</key>
+					<real>0.05</real>
+					<key>baselineIntegrationDisplayName</key>
+					<string>Local Baseline</string>
+				</dict>
+			</dict>
 		</dict>
 	</dict>
 </dict>

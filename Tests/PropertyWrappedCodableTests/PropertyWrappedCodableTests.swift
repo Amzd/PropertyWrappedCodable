@@ -6,8 +6,8 @@ struct WrappedExample: PropertyWrappedCodable {
     @CodableValue var id: String = "Default"
     @CodableValue var dog: String?
     @CodableValue(key: "is_active") var isActive: Bool
-    
-    init(nonWrappedValuesFrom decoder: Decoder) throws {}
+
+    init(nonWrappedValuesFrom decoder: Decoder) throws { }
 }
 
 struct CodableExample: Codable {
@@ -15,14 +15,14 @@ struct CodableExample: Codable {
     var id: String
     var dog: String
     var isActive: Bool
-    
+
     enum CodingKeys: String, CodingKey {
         case name
         case id
         case dog
         case isActive = "is_active"
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decode(String.self, forKey: .name)
@@ -35,19 +35,28 @@ struct CodableExample: Codable {
 let decoder = JSONDecoder()
 let encoder = JSONEncoder()
 
+let iterate50times: XCTMeasureOptions = {
+    let options = XCTMeasureOptions.default
+    options.iterationCount = 50
+    return options
+}()
+
+@available(OSX 10.15, *)
 final class PropertyWrappedCodableTests: XCTestCase {
-    func measureWrapped() {
-        measure {
+    func testMeasureWrapped() {
+        /// Baseline: 0.045s
+        measure(options: iterate50times) {
             let _ = try? decoder.decode([WrappedExample].self, from: mockData)
         }
     }
-    
-    func measureCodable() {
-        measure {
+
+    func testMeasureCodable() {
+        /// Baseline: 0.0086s
+        measure(options: iterate50times) {
             let _ = try? decoder.decode([CodableExample].self, from: mockData)
         }
     }
-    
+
     func testEncodeResultEqual() {
         do {
             let wrapped = try decoder.decode([CodableExample].self, from: mockData)
@@ -62,11 +71,10 @@ final class PropertyWrappedCodableTests: XCTestCase {
             return
         }
     }
-    
 
     static var allTests = [
-        ("measureWrapped", measureWrapped),
-        ("measureCodable", measureCodable),
+        ("testMeasureWrapped", testMeasureWrapped),
+        ("testMeasureCodable", testMeasureCodable),
         ("testEncodeResultEqual", testEncodeResultEqual),
     ]
 }
