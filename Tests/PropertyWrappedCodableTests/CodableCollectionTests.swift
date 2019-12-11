@@ -18,17 +18,17 @@ struct Person: PropertyWrappedCodable {
 
 struct CollectionExample: PropertyWrappedCodable {
     // defaults to .lossy so failed decoding wont be shown
-    @CodableCollection(key: "ids") var ids1: [Int]
+    @CodableCollection() var ids1: [Int]
     // same as ids1
-    @CodableCollection(.lossy, key: "ids") var ids2: [Int]
+    @CodableCollection(.lossy) var ids2: [Int]
     
     // defaults fallback to `nil`
-    @CodableCollection(key: "ids") var ids3: [Int?]
+    @CodableCollection() var ids3: [Int?]
     // same as ids3
-    @CodableCollection(.fallbackValue(nil), key: "ids") var ids4: [Int?]
+    @CodableCollection(.fallbackValue(nil)) var ids4: [Int?]
     
     // falls back to 0 if decoding fails
-    @CodableCollection(.fallbackValue(0), key: "ids") var ids5: [Int]
+    @CodableCollection(.fallbackValue(0)) var ids5: [Int]
     
     init(nonWrappedValuesFrom decoder: Decoder) throws { }
 }
@@ -74,7 +74,13 @@ class CodableCollectionTests: XCTestCase {
     
     func testCollectionExample() {
         let json = """
-        { "ids" : [1, 2, "3"] }
+        {
+            "ids1" : [1, 2, "3"],
+            "ids2" : [1, 2, "3"],
+            "ids3" : [1, 2, "3"],
+            "ids4" : [1, 2, "3"],
+            "ids5" : [1, 2, "3"]
+        }
         """
         let data = json.data(using: .utf8)!
         do {
