@@ -80,3 +80,51 @@ let petsJson = """
 let petsData = petsJson.data(using: .utf8)!
 let pets = try decoder.decode([Pet].self, from: petsData) // [Cat, Dog]
 ```
+
+## Collection Decoding Strategy
+
+```swift
+public enum CollectionDecodingStrategy<V> {
+    /// Replaces invalid elements with fallback value:
+    /// ["This", null, "That"] -> ["This", "FallbackValue", "That"]
+    /// This is the default with `nil` as fallback value if the collection uses an Optional type (eg: [Int?])
+    case fallbackValue(V)
+    /// Leaves out invalid elements:
+    /// [1, 2, "3"] -> [1, 2]
+    /// This is the default unless the collection uses an Optional type (eg: [Int?])
+    /// Note: Throws when there is no collection! Use default if you don't want that.
+    case lossy
+}
+```
+Usage:
+
+```swift
+struct Example: PropertyWrappedCodable {
+    // defaults to .lossy so failed decoding wont be shown
+    @CodableCollection(key: "ids") var ids1: [Int]
+    // same as ids1
+    @CodableCollection(.lossy, key: "ids") var ids2: [Int] 
+    
+    // defaults fallback to `nil`
+    @CodableCollection(key: "ids") var ids3: [Int?] 
+    // same as ids3
+    @CodableCollection(.fallbackValue(nil), key: "ids") var ids4: [Int?] 
+    
+    // falls back to 0 if decoding fails
+    @CodableCollection(.fallbackValue(0), key: "ids") var ids5: [Int] 
+    
+    init(nonWrappedValuesFrom decoder: Decoder) throws { }
+}
+```
+```swift
+let json = """
+{ "ids" : [1, 2, "3"] }
+"""
+let data = json.data(using: .utf8)!
+let example = try decoder.decode(Example.self, from: data) 
+print(example.ids1) // [1, 2]
+print(example.ids2) // [1, 2]
+print(example.ids3) // [1, 2, nil]
+print(example.ids4) // [1, 2, nil]
+print(example.ids5) // [1, 2, 0]
+```

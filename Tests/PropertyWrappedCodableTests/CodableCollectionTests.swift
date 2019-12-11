@@ -16,8 +16,33 @@ struct Person: PropertyWrappedCodable {
     init(nonWrappedValuesFrom decoder: Decoder) throws { }
 }
 
+struct CollectionExample: PropertyWrappedCodable {
+    // defaults to .lossy so failed decoding wont be shown
+    @CodableCollection(key: "ids") var ids1: [Int]
+    // same as ids1
+    @CodableCollection(.lossy, key: "ids") var ids2: [Int]
+    
+    // defaults fallback to `nil`
+    @CodableCollection(key: "ids") var ids3: [Int?]
+    // same as ids3
+    @CodableCollection(.fallbackValue(nil), key: "ids") var ids4: [Int?]
+    
+    // falls back to 0 if decoding fails
+    @CodableCollection(.fallbackValue(0), key: "ids") var ids5: [Int]
+    
+    init(nonWrappedValuesFrom decoder: Decoder) throws { }
+}
+
+struct PersonVerbose: PropertyWrappedCodable {
+    @CodableValue() var name: String
+    @CodableCollection(.lossy, key: "pets") var pets: [Pet]
+    @CodableCollection(.fallbackValue(nil), key: "pets") var petsFallback: [Pet?]
+    
+    init(nonWrappedValuesFrom decoder: Decoder) throws { }
+}
+
 class CodableCollectionTests: XCTestCase {
-    func testExample() {
+    func testPersonExample() {
         let data = """
         {
             "name": "Casper",
@@ -46,4 +71,26 @@ class CodableCollectionTests: XCTestCase {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
+    
+    func testCollectionExample() {
+        let json = """
+        { "ids" : [1, 2, "3"] }
+        """
+        let data = json.data(using: .utf8)!
+        do {
+            let example = try decoder.decode(CollectionExample.self, from: data)
+            XCTAssert(example.ids1 == [1, 2])
+            XCTAssert(example.ids2 == [1, 2])
+            XCTAssert(example.ids3 == [1, 2, nil])
+            XCTAssert(example.ids4 == [1, 2, nil])
+            XCTAssert(example.ids5 == [1, 2, 0])
+        } catch let error {
+            XCTFail("\(error)")
+        }
+    }
+    
+    static var allTests = [
+        ("testPersonExample", testPersonExample),
+        ("testCollectionExample", testCollectionExample),
+    ]
 }
