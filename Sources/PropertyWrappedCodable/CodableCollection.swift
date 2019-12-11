@@ -1,5 +1,5 @@
 //
-//  CodableArray.swift
+//  CodableCollection.swift
 //  PropertyWrappedCodable
 //
 //  Created by Casper Zandbergen on 10/12/2019.
@@ -7,31 +7,20 @@
 
 import Foundation
 
-public enum ArrayDecodingStrategy<V> {
-    /// Throws when any elements is incorrect (default decoding behaviour)
-    case exact
+public enum CollectionDecodingStrategy<V> {
     /// Replaces invalid elements with fallback value:
     /// ["This", null, "That"] -> ["This", "FallbackValue", "That"]
+    /// This is the default with `nil` as fallback value if the collection uses an Optional type (eg: [Int?])
     case fallbackValue(V)
     /// Leaves out invalid elements:
     /// [1, 2, "3"] -> [1, 2]
-    /// Note: Throws when there is no array! Use default if you don't want this.
-    case compacted
+    /// This is the default unless the collection uses an Optional type (eg: [Int?])
+    /// Note: Throws when there is no collection! Use default if you don't want that.
+    case lossy
 }
 
-/// https://stackoverflow.com/a/52070521/3393964
-struct Throwable<T: Decodable>: Decodable {
-    let result: Result<T, Error>
-
-    init(from decoder: Decoder) throws {
-        result = Result(catching: { try T(from: decoder) })
-    }
-}
-
-@propertyWrapper public struct CodableArray<Element: Codable>: CodableValueProtocol {
-    public typealias Value = Array<Element>
-    typealias ThrowableValue = Array<Throwable<Element>>
-    public typealias Strategy = ArrayDecodingStrategy<Element>
+@propertyWrapper public struct CodableCollection<Value: ThrowableCollection & Codable>: CodableValueProtocol {
+    public typealias Strategy = CollectionDecodingStrategy<Value.Value>
     
     public var wrappedValue: Value {
         get { return box.value ?? { fatalError("Use inside PropertyWrappedCodable or FamilyCodable not Codable!") }() }
@@ -44,28 +33,28 @@ struct Throwable<T: Decodable>: Decodable {
     
     // MARK: - Custom key
     
-    public init(wrappedValue: Value, strategy: Strategy, key: String) {
+    public init(wrappedValue: Value, _ strategy: Strategy = .lossy, key: String) {
         self.strategy = strategy
         self.key = key
         self.wrappedValue = wrappedValue
     }
-    public init(strategy: Strategy, key: String) {
+    public init(_ strategy: Strategy = .lossy, key: String) {
         self.strategy = strategy
         self.key = key
     }
     
     // MARK: - Infered key
     
-    public init(wrappedValue: Value, strategy: Strategy) {
+    public init(wrappedValue: Value, _ strategy: Strategy = .lossy) {
         self.strategy = strategy
         self.wrappedValue = wrappedValue
     }
-    public init(strategy: Strategy) {
+    public init(_ strategy: Strategy = .lossy) {
         self.strategy = strategy
     }
     
     // MARK: - CodableValueProtocol
-       
+    
     func initValue(with label: String, from container: KeyedDecodingContainer<AnyCodingKey>) throws {
         // label always starts with an underscore
         assert(label.first == "_")
@@ -73,14 +62,12 @@ struct Throwable<T: Decodable>: Decodable {
         
         func decode() throws -> Value {
             switch strategy {
-            case .exact:
-                return try container.decode(Value.self, forKey: codingKey)
             case .fallbackValue(let fallback):
-                return try container.decode(ThrowableValue.self, forKey: codingKey).map {
+                return try container.decode(Value.Throwable.self, forKey: codingKey).mapValues {
                     (try? $0.result.get()) ?? fallback
                 }
-            case .compacted:
-                return try container.decode(ThrowableValue.self, forKey: codingKey).compactMap {
+            case .lossy:
+                return try container.decode(Value.Throwable.self, forKey: codingKey).compactMapValues {
                     try? $0.result.get()
                 }
             }
@@ -96,5 +83,36 @@ struct Throwable<T: Decodable>: Decodable {
     func encodeValue(with label: String, to container: inout KeyedEncodingContainer<AnyCodingKey>) throws {
         let codingKey = AnyCodingKey(stringValue: key ?? String(label.dropFirst()))
         try container.encode(wrappedValue, forKey: codingKey)
+    }
+}
+
+// MARK: - Default fallback to nil when using an Optional value in the collection
+// eg: in `@CodableCollection() var pets: [Pet?]` failed Pet objects will fallback to nil
+
+public protocol OptionalType {
+    associatedtype Wrapped
+    static var `nil`: Wrapped { get }
+}
+
+extension Optional: OptionalType {
+    public static var `nil`: Optional<Wrapped> { return .none }
+}
+
+extension CodableCollection where Value.Value: OptionalType, Value.Value.Wrapped == Value.Value {
+    public init(wrappedValue: Value, key: String) {
+        self.strategy = .fallbackValue(.nil)
+        self.key = key
+        self.wrappedValue = wrappedValue
+    }
+    public init(key: String) {
+        self.strategy = .fallbackValue(.nil)
+        self.key = key
+    }
+    public init(wrappedValue: Value) {
+        self.strategy = .fallbackValue(.nil)
+        self.wrappedValue = wrappedValue
+    }
+    public init() {
+        self.strategy = .fallbackValue(.nil)
     }
 }
