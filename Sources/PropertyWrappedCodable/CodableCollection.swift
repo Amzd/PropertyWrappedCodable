@@ -27,9 +27,14 @@ public enum CollectionDecodingStrategy<V> {
         set { box = StrongBox(newValue) } // Create new holder so struct mutates
     }
     
+    public var failures: [Error] {
+        return failureBox.value
+    }
+    
     private var strategy: Strategy
     private var key: String?
     private var box = StrongBox<Value?>(nil)
+    private var failureBox = StrongBox<[Error]>([])
     
     // MARK: - Custom key
     
@@ -61,14 +66,23 @@ public enum CollectionDecodingStrategy<V> {
         let codingKey = AnyCodingKey(stringValue: key ?? String(label.dropFirst()))
         
         func decode() throws -> Value {
+            func getResultOrSaveError(from throwable: Value.Throwable.Value) -> Value.Value? {
+                do {
+                    return try throwable.result.get()
+                } catch let error {
+                    failureBox.value.append(error)
+                    return nil
+                }
+            }
+            
             switch strategy {
             case .fallbackValue(let fallback):
                 return try container.decode(Value.Throwable.self, forKey: codingKey).mapValues {
-                    (try? $0.result.get()) ?? fallback
+                    getResultOrSaveError(from: $0) ?? fallback
                 }
             case .lossy:
                 return try container.decode(Value.Throwable.self, forKey: codingKey).compactMapValues {
-                    try? $0.result.get()
+                    getResultOrSaveError(from: $0)
                 }
             }
         }
