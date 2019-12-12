@@ -30,6 +30,10 @@ struct CollectionExample: PropertyWrappedCodable {
     // falls back to 0 if decoding fails
     @CodableCollection(.fallbackValue(0)) var ids5: [Int]
     
+    var ids1Failures: [Error] {
+        _ids1.failures
+    }
+    
     init(nonWrappedValuesFrom decoder: Decoder) throws { }
 }
 
@@ -90,6 +94,7 @@ class CodableCollectionTests: XCTestCase {
             XCTAssert(example.ids3 == [1, 2, nil])
             XCTAssert(example.ids4 == [1, 2, nil])
             XCTAssert(example.ids5 == [1, 2, 0])
+            XCTAssert(example.ids1Failures.count == 1, "\(example.ids1Failures)")
         } catch let error {
             XCTFail("\(error)")
         }
