@@ -32,6 +32,28 @@ struct CodableExample: Codable {
     }
 }
 
+struct RuntimeExample: RuntimePropertyWrappedCodable {
+    @CodableValue var name: String
+    @CodableValue var id: String = "Default"
+    @CodableValue var dog: String?
+    @CodableValue(key: "is_active") var isActive: Bool
+
+    init(nonWrappedValuesFrom decoder: Decoder) throws { }
+}
+
+struct EchoExample: EchoPropertyWrappedCodable {
+    @CodableValue var name: String
+    @CodableValue var id: String = "Default"
+    @CodableValue var dog: String?
+    @CodableValue(key: "is_active") var isActive: Bool
+
+    init(nonWrappedValuesFrom decoder: Decoder) throws { }
+}
+
+func == (lhs: WrappedExample, rhs: RuntimeExample) -> Bool {
+    lhs.name == rhs.name && lhs.id == rhs.id && lhs.dog == rhs.dog && lhs.isActive == rhs.isActive
+}
+
 let decoder = JSONDecoder()
 let encoder = JSONEncoder()
 
@@ -56,6 +78,28 @@ final class PropertyWrappedCodableTests: XCTestCase {
             let _ = try? decoder.decode([CodableExample].self, from: mockData)
         }
     }
+    
+    func testMeasureRuntime() {
+        /// Baseline: 0.053s
+        measure(options: iterate50times) {
+            let _ = try? decoder.decode([RuntimeExample].self, from: mockData)
+        }
+    }
+    
+    func testMeasureEcho() {
+        /// Baseline: 0.093s
+        measure(options: iterate50times) {
+            let _ = try? decoder.decode([EchoExample].self, from: mockData)
+        }
+    }
+    
+    func testRuntimeEqualsWrapped() {
+        let runtime = try! decoder.decode([RuntimeExample].self, from: mockData)
+        let wrapped = try! decoder.decode([WrappedExample].self, from: mockData)
+        for index in (0..<1000) {
+            XCTAssert(wrapped[index] == runtime[index])
+        }
+    }
 
     func testEncodeResultEqual() {
         do {
@@ -75,6 +119,8 @@ final class PropertyWrappedCodableTests: XCTestCase {
     static var allTests = [
         ("testMeasureWrapped", testMeasureWrapped),
         ("testMeasureCodable", testMeasureCodable),
+        ("testMeasureRuntime", testMeasureRuntime),
+        ("testMeasureEcho", testMeasureEcho),
         ("testEncodeResultEqual", testEncodeResultEqual),
     ]
 }

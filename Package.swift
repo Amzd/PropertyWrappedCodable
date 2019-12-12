@@ -14,6 +14,8 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
+        .package(url: "https://github.com/wickwirew/Runtime", from: "2.1.1"),
+        .package(url: "https://github.com/Azoy/Echo", .revision("92d09d75e382cb7e4fd0ed02bca445d0d7958207"))
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -23,6 +25,6 @@ let package = Package(
             dependencies: []),
         .testTarget(
             name: "PropertyWrappedCodableTests",
-            dependencies: ["PropertyWrappedCodable"]),
+            dependencies: ["PropertyWrappedCodable", "Runtime", "Echo"])
     ]
 )
