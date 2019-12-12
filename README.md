@@ -114,6 +114,19 @@ struct Example: PropertyWrappedCodable {
     @CodableCollection(.fallbackValue(0)) var ids5: [Int]
     
     init(nonWrappedValuesFrom decoder: Decoder) throws { }
+    
+    // Optional:
+    // If you want to report back that some objects are the wrong structure and couldn't be decoded you can do that like this:
+    init(from decoder: Decoder) throws {
+        try self.init(propertyWrappedValuesFrom: decoder)
+        _ids1.failures.isEmpty ? () : Admin.sendReport("Failed to init some objects: \(_ids1.failures)")
+    }
+    
+    // Optional:
+    // If you want to expose the errors you can do this:
+    var ids1Failures: [Error] {
+        _ids1.failures
+    }
 }
 ```
 ```swift
