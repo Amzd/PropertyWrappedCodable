@@ -22,7 +22,8 @@ public extension FamilyCodable {
     /// Call this when you override `init(from:)`
     init(familyFrom decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: AnyCodingKey.self)
-        let discriminator = try container.decode(DiscriminatorValue.self, forKey: Self.discriminatorKey.toAnyCodingKey())
+        let key = Self.discriminatorKey.toAnyCodingKey()
+        let discriminator = try container.decode(DiscriminatorValue.self, forKey: key)
         let member = try Self.familyMember(for: discriminator)
         if !(member.self is Self.Type) {
             // not a subclass
