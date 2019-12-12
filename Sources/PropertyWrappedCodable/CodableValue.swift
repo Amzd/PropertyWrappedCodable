@@ -10,7 +10,7 @@ protocol CodableValueProtocol {
     }
     
     private var key: String?
-    private var box = StrongBox<Value>()
+    private var box = StrongBox<Value?>(nil)
     
     // MARK: - Custom key
     
@@ -50,8 +50,8 @@ protocol CodableValueProtocol {
 }
 
 internal class StrongBox<Value> {
-    var value: Value?
-    init(_ value: Value? = nil) {
+    var value: Value
+    init(_ value: Value) {
         self.value = value
     }
 }

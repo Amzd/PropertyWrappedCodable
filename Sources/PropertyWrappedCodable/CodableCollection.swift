@@ -29,7 +29,7 @@ public enum CollectionDecodingStrategy<V> {
     
     private var strategy: Strategy
     private var key: String?
-    private var box = StrongBox<Value>()
+    private var box = StrongBox<Value?>(nil)
     
     // MARK: - Custom key
     
