@@ -15,9 +15,8 @@ public extension PropertyWrappedCodable {
         var optionalMirror: Mirror? = Mirror(reflecting: self)
         while let mirror = optionalMirror {
             for child in mirror.children {
-                try (child.value as? CodableValueProtocol).map {
-                    try $0.initValue(with: child.label!, from: container)
-                }
+                let value = child.value as? CodableValueProtocol
+                try value?.initValue(with: child.label!, from: container)
             }
             optionalMirror = mirror.superclassMirror
         }
@@ -33,9 +32,8 @@ public extension PropertyWrappedCodable {
         var optionalMirror: Mirror? = Mirror(reflecting: self)
         while let mirror = optionalMirror {
             for child in mirror.children {
-                try (child.value as? CodableValueProtocol).map {
-                    try $0.encodeValue(with: child.label!, to: &container)
-                }
+                let value = child.value as? CodableValueProtocol
+                try value?.encodeValue(with: child.label!, to: &container)
             }
             optionalMirror = mirror.superclassMirror
         }
