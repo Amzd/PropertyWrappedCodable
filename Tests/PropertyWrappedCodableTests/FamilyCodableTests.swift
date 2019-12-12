@@ -5,7 +5,11 @@ class Pet: FamilyCodable, Equatable {
     @CodableValue() var name: String
     @CodableValue() private var type: String
     
-    required init(nonWrappedValuesFrom decoder: Decoder) throws { }
+    var someOtherValue: String
+    
+    required init(nonWrappedValuesFrom decoder: Decoder) throws {
+        someOtherValue = "no"
+    }
     
     static var discriminatorKey = "type"
     
@@ -49,6 +53,7 @@ final class FamilyCodableTests: XCTestCase {
             let pets = try decoder.decode([Pet].self, from: petsData)
             XCTAssert(pets.first is Cat)
             XCTAssert(pets.last is Dog)
+            XCTAssert(pets.first?.someOtherValue == "no")
             
             let again = try decoder.decode([Pet].self, from: try encoder.encode(pets))
             XCTAssert(again.first is Cat)
