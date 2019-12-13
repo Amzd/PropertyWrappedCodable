@@ -19,7 +19,7 @@ public enum CollectionDecodingStrategy<V> {
     case lossy
 }
 
-@propertyWrapper public struct CodableCollection<Value: ThrowableCollection & Codable>: CodableValueProtocol {
+@propertyWrapper public struct CodableCollection<Value: CollectionWithThrowableType & Codable>: CodableValueProtocol {
     public typealias Strategy = CollectionDecodingStrategy<Value.Value>
     
     public var wrappedValue: Value {
@@ -81,7 +81,7 @@ public enum CollectionDecodingStrategy<V> {
                     getResultOrSaveError(from: $0) ?? fallback
                 }
             case .lossy:
-                return try container.decode(Value.Throwable.self, forKey: codingKey).compactThrowableMapValues {
+                return try container.decode(Value.Throwable.self, forKey: codingKey).compactMapThrowableValues {
                     getResultOrSaveError(from: $0)
                 }
             }

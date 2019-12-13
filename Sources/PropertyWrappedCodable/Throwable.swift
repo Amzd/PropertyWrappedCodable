@@ -22,7 +22,7 @@ public struct ThrowableValue<T: Decodable>: Decodable, ThrowableValueProtocol {
 // MARK: - Protocols to implement if you want your Collection to work with @CodableCollection
 
 public protocol CollectionWithThrowableType: Collection {
-    associatedtype Throwable: Decodable & ThrowableCollection where Throwable.Value == ThrowableValue<Value>
+    associatedtype Throwable: Decodable & ThrowableCollection where Throwable.Value == ThrowableValue<Value>, Throwable.Parent == Self
     associatedtype Value: Decodable
 }
 
