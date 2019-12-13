@@ -12,7 +12,7 @@ struct WrappedExample: PropertyWrappedCodable {
     @CodableValue var dog: String?
     @CodableValue(key: "is_active") var isActive: Bool
     
-    init(nonWrappedValuesFrom decoder: Decoder) throws {}
+    init(nonWrappedPropertiesFrom decoder: Decoder) throws {}
 }
 ```
 vs
@@ -51,7 +51,7 @@ class Pet: FamilyCodable {
     @CodableValue() var name: String
     @CodableValue() private var type: String
     
-    required init(nonWrappedValuesFrom decoder: Decoder) throws { }
+    required init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
     
     static var discriminatorKey = "type"
     
@@ -113,12 +113,12 @@ struct Example: PropertyWrappedCodable {
     // falls back to 0 if decoding fails
     @CodableCollection(.fallbackValue(0)) var ids5: [Int]
     
-    init(nonWrappedValuesFrom decoder: Decoder) throws { }
+    init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
     
     // Optional:
     // If you want to report back that some objects are the wrong structure and couldn't be decoded you can do that like this:
     init(from decoder: Decoder) throws {
-        try self.init(propertyWrappedValuesFrom: decoder)
+        try self.init(wrappedPropertiesFrom: decoder)
         _ids1.failures.isEmpty ? () : Admin.sendReport("Failed to init some objects: \(_ids1.failures)")
     }
     
