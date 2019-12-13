@@ -53,6 +53,10 @@ struct EchoExample: EchoPropertyWrappedCodable {
 func == (lhs: WrappedExample, rhs: RuntimeExample) -> Bool {
     lhs.name == rhs.name && lhs.id == rhs.id && lhs.dog == rhs.dog && lhs.isActive == rhs.isActive
 }
+func == (lhs: WrappedExample, rhs: EchoExample) -> Bool {
+    lhs.name == rhs.name && lhs.id == rhs.id && lhs.dog == rhs.dog && lhs.isActive == rhs.isActive
+}
+
 
 let decoder = JSONDecoder()
 let encoder = JSONEncoder()
@@ -94,10 +98,16 @@ final class PropertyWrappedCodableTests: XCTestCase {
     }
     
     func testRuntimeEqualsWrapped() {
-        let runtime = try! decoder.decode([RuntimeExample].self, from: mockData)
-        let wrapped = try! decoder.decode([WrappedExample].self, from: mockData)
-        for index in (0..<1000) {
-            XCTAssert(wrapped[index] == runtime[index])
+        do {
+            let wrapped = try decoder.decode([WrappedExample].self, from: mockData)
+            let runtime = try decoder.decode([RuntimeExample].self, from: mockData)
+            let echo = try decoder.decode([EchoExample].self, from: mockData)
+            for index in (0..<1000) {
+                XCTAssert(wrapped[index] == runtime[index])
+                XCTAssert(wrapped[index] == echo[index])
+            }
+        } catch let error {
+            XCTFail("\(error)")
         }
     }
 
