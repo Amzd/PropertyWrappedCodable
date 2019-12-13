@@ -33,7 +33,7 @@ public extension FamilyCodable {
             self = try member.init(from: decoder) as! Self
         } else {
             // family class
-            try self.init(propertyWrappedValuesFrom: decoder)
+            try self.init(wrappedPropertiesFrom: decoder)
         }
     }
 }

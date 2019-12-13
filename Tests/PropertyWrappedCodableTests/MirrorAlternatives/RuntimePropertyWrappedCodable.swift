@@ -3,17 +3,17 @@
 
 public protocol RuntimePropertyWrappedCodable: Codable {
     /// Warning: Property wrapped values arent available here yet!
-    init(nonWrappedValuesFrom decoder: Decoder) throws
+    init(nonWrappedPropertiesFrom decoder: Decoder) throws
 }
 
 public extension RuntimePropertyWrappedCodable {
     init(from decoder: Decoder) throws {
-        try self.init(propertyWrappedValuesFrom: decoder)
+        try self.init(wrappedPropertiesFrom: decoder)
     }
     
     /// Call this when you override `init(from:)`
-    init(propertyWrappedValuesFrom decoder: Decoder) throws {
-        try self.init(nonWrappedValuesFrom: decoder)
+    init(wrappedPropertiesFrom decoder: Decoder) throws {
+        try self.init(nonWrappedPropertiesFrom: decoder)
         let container = try decoder.container(keyedBy: AnyCodingKey.self)
         
         for prop in try properties(of: Self.self) {

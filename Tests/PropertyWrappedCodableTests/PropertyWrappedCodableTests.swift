@@ -7,7 +7,7 @@ struct WrappedExample: PropertyWrappedCodable {
     @CodableValue var dog: String?
     @CodableValue(key: "is_active") var isActive: Bool
 
-    init(nonWrappedValuesFrom decoder: Decoder) throws { }
+    init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
 }
 
 struct CodableExample: Codable {
@@ -38,7 +38,7 @@ struct RuntimeExample: RuntimePropertyWrappedCodable {
     @CodableValue var dog: String?
     @CodableValue(key: "is_active") var isActive: Bool
 
-    init(nonWrappedValuesFrom decoder: Decoder) throws { }
+    init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
 }
 
 struct EchoExample: EchoPropertyWrappedCodable {
@@ -47,7 +47,7 @@ struct EchoExample: EchoPropertyWrappedCodable {
     @CodableValue var dog: String?
     @CodableValue(key: "is_active") var isActive: Bool
 
-    init(nonWrappedValuesFrom decoder: Decoder) throws { }
+    init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
 }
 
 func == (lhs: WrappedExample, rhs: RuntimeExample) -> Bool {

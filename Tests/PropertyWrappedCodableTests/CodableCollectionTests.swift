@@ -13,7 +13,7 @@ struct Person: PropertyWrappedCodable {
     @CodableCollection(key: "pets") var pets: [Pet]
     @CodableCollection(key: "pets") var petsFallback: [Pet?]
     
-    init(nonWrappedValuesFrom decoder: Decoder) throws { }
+    init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
 }
 
 struct CollectionExample: PropertyWrappedCodable {
@@ -34,7 +34,7 @@ struct CollectionExample: PropertyWrappedCodable {
         _ids1.failures + _ids2.failures + _ids3.failures + _ids4.failures + _ids5.failures
     }
     
-    init(nonWrappedValuesFrom decoder: Decoder) throws { }
+    init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
 }
 
 struct PersonVerbose: PropertyWrappedCodable {
@@ -42,7 +42,7 @@ struct PersonVerbose: PropertyWrappedCodable {
     @CodableCollection(.lossy, key: "pets") var pets: [Pet]
     @CodableCollection(.fallbackValue(nil), key: "pets") var petsFallback: [Pet?]
     
-    init(nonWrappedValuesFrom decoder: Decoder) throws { }
+    init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
 }
 
 class CodableCollectionTests: XCTestCase {

@@ -1,16 +1,16 @@
 public protocol PropertyWrappedCodable: Codable {
     /// Warning: Property wrapped values arent available here yet!
-    init(nonWrappedValuesFrom decoder: Decoder) throws
+    init(nonWrappedPropertiesFrom decoder: Decoder) throws
 }
 
 public extension PropertyWrappedCodable {
     init(from decoder: Decoder) throws {
-        try self.init(propertyWrappedValuesFrom: decoder)
+        try self.init(wrappedPropertiesFrom: decoder)
     }
     
     /// Call this when you override `init(from:)`
-    init(propertyWrappedValuesFrom decoder: Decoder) throws {
-        try self.init(nonWrappedValuesFrom: decoder)
+    init(wrappedPropertiesFrom decoder: Decoder) throws {
+        try self.init(nonWrappedPropertiesFrom: decoder)
         let container = try decoder.container(keyedBy: AnyCodingKey.self)
         var optionalMirror: Mirror? = Mirror(reflecting: self)
         while let mirror = optionalMirror {

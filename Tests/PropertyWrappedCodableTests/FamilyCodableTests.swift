@@ -7,7 +7,7 @@ class Pet: FamilyCodable, Equatable {
     
     var someOtherValue: String
     
-    required init(nonWrappedValuesFrom decoder: Decoder) throws {
+    required init(nonWrappedPropertiesFrom decoder: Decoder) throws {
         someOtherValue = "no"
     }
     
