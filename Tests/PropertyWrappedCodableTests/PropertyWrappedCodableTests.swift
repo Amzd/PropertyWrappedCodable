@@ -68,28 +68,28 @@ final class PropertyWrappedCodableTests: XCTestCase {
     func testMeasureWrapped() {
         /// Baseline: 0.045s
         measure(options: iterate50times) {
-            let _ = try? decoder.decode([WrappedExample].self, from: mockData)
+            _ = try? decoder.decode([WrappedExample].self, from: mockData)
         }
     }
 
     func testMeasureCodable() {
         /// Baseline: 0.0086s
         measure(options: iterate50times) {
-            let _ = try? decoder.decode([CodableExample].self, from: mockData)
+            _ = try? decoder.decode([CodableExample].self, from: mockData)
         }
     }
     
     func testMeasureRuntime() {
         /// Baseline: 0.053s
         measure(options: iterate50times) {
-            let _ = try? decoder.decode([RuntimeExample].self, from: mockData)
+            _ = try? decoder.decode([RuntimeExample].self, from: mockData)
         }
     }
     
     func testMeasureEcho() {
         /// Baseline: 0.093s
         measure(options: iterate50times) {
-            let _ = try? decoder.decode([EchoExample].self, from: mockData)
+            _ = try? decoder.decode([EchoExample].self, from: mockData)
         }
     }
     
