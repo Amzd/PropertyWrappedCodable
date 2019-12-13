@@ -5,45 +5,69 @@
 //  Created by Casper Zandbergen on 11/12/2019.
 //
 
+
+public protocol ThrowableValueProtocol: Decodable {
+    associatedtype Wrapped: Decodable
+    var result: Result<Wrapped, Error> { get }
+}
 /// https://stackoverflow.com/a/52070521/3393964
-public struct ThrowableValue<T: Decodable>: Decodable {
-    let result: Result<T, Error>
+public struct ThrowableValue<T: Decodable>: Decodable, ThrowableValueProtocol {
+    public let result: Result<T, Error>
 
     public init(from decoder: Decoder) throws {
         result = Result(catching: { try T(from: decoder) })
     }
 }
 
-/// Implement this if you want your Collection to work with @CodableCollection
-public protocol ThrowableCollection: Collection {
+// MARK: - Protocols to implement if you want your Collection to work with @CodableCollection
+
+public protocol CollectionWithThrowableType: Collection {
     associatedtype Throwable: Decodable & ThrowableCollection where Throwable.Value == ThrowableValue<Value>
     associatedtype Value: Decodable
-    func mapValues<T: ThrowableCollection>(_ transform: (Value) throws -> T.Value) rethrows -> T
-    func compactMapValues<T: ThrowableCollection>(_ transform: (Value) throws -> T.Value?) rethrows -> T
 }
 
-extension Dictionary: ThrowableCollection where Value: Decodable, Key: Decodable {
+public protocol ThrowableCollection: Collection where Value: ThrowableValueProtocol {
+    associatedtype Parent: Decodable & CollectionWithThrowableType where Parent.Value == Value.Wrapped
+    associatedtype Value
+    
+    func mapThrowableValues(_ transform: (Value) throws -> Parent.Value) rethrows -> Parent
+    func compactMapThrowableValues(_ transform: (Value) throws -> Parent.Value?) rethrows -> Parent
+}
+
+// MARK: - Dictionary
+
+extension Dictionary: CollectionWithThrowableType where Value: Decodable, Key: Decodable {
     public typealias Throwable = Dictionary<Key, ThrowableValue<Value>>
+}
+
+extension Dictionary: ThrowableCollection where Value: ThrowableValueProtocol, Key: Decodable  {
+    public typealias Parent = Dictionary<Key, Value.Wrapped>
     
-    public func mapValues<T: ThrowableCollection>(_ transform: (Value) throws -> T.Value) rethrows -> T {
-        return try mapValues(transform) as! T
+    public func mapThrowableValues(_ transform: (Value) throws -> Value.Wrapped) rethrows -> Parent {
+        return try mapValues(transform)
     }
-    
-    public func compactMapValues<T: ThrowableCollection>(_ transform: (Value) throws -> T.Value?) rethrows -> T {
-        return try compactMapValues(transform) as! T
+
+    public func compactMapThrowableValues(_ transform: (Value) throws -> Value.Wrapped?) rethrows -> Parent {
+        return try compactMapValues(transform)
     }
 }
 
-extension Array: ThrowableCollection where Element: Decodable {
+// MARK: - Array
+
+extension Array: CollectionWithThrowableType where Element: Decodable {
     public typealias Throwable = Array<ThrowableValue<Element>>
     public typealias Value = Element
+}
+
+extension Array: ThrowableCollection where Element: ThrowableValueProtocol {
+    public typealias Parent = Array<Element.Wrapped>
     
-    public func mapValues<T: ThrowableCollection>(_ transform: (Value) throws -> T.Value) rethrows -> T {
-        return try map(transform) as! T
+    public func mapThrowableValues(_ transform: (Value) throws -> Value.Wrapped) rethrows -> Parent {
+        return try map(transform)
     }
-    
-    public func compactMapValues<T: ThrowableCollection>(_ transform: (Value) throws -> T.Value?) rethrows -> T {
-        return try compactMap(transform) as! T
+
+    public func compactMapThrowableValues(_ transform: (Value) throws -> Value.Wrapped?) rethrows -> Parent {
+        return try compactMap(transform)
     }
 }
 

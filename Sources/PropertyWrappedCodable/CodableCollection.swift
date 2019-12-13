@@ -77,11 +77,11 @@ public enum CollectionDecodingStrategy<V> {
             
             switch strategy {
             case .fallbackValue(let fallback):
-                return try container.decode(Value.Throwable.self, forKey: codingKey).mapValues {
+                return try container.decode(Value.Throwable.self, forKey: codingKey).mapThrowableValues {
                     getResultOrSaveError(from: $0) ?? fallback
                 }
             case .lossy:
-                return try container.decode(Value.Throwable.self, forKey: codingKey).compactMapValues {
+                return try container.decode(Value.Throwable.self, forKey: codingKey).compactThrowableMapValues {
                     getResultOrSaveError(from: $0)
                 }
             }
