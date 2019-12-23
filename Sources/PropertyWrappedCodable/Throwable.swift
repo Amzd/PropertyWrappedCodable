@@ -5,10 +5,13 @@
 //  Created by Casper Zandbergen on 11/12/2019.
 //
 
+// MARK: - ThrowableValue
+
 public protocol ThrowableValueProtocol: Decodable {
     associatedtype Wrapped: Decodable
     var result: Result<Wrapped, Error> { get }
 }
+
 /// https://stackoverflow.com/a/52070521/3393964
 public struct ThrowableValue<T: Decodable>: Decodable, ThrowableValueProtocol {
     public let result: Result<T, Error>
@@ -44,9 +47,9 @@ public protocol CollectionWithThrowableType: Collection {
     associatedtype Value: Decodable
 }
 
-public protocol ThrowableCollection: Collection where Value: ThrowableValueProtocol {
+public protocol ThrowableCollection: Collection {
     associatedtype Parent: Decodable & CollectionWithThrowableType where Parent.Value == Value.Wrapped
-    associatedtype Value
+    associatedtype Value: ThrowableValueProtocol
     
     func mapThrowableValues(_ transform: (Value) throws -> Parent.Value) rethrows -> Parent
     func compactMapThrowableValues(_ transform: (Value) throws -> Parent.Value?) rethrows -> Parent
@@ -89,6 +92,7 @@ extension Array: ThrowableCollection where Element: ThrowableValueProtocol {
     }
 }
 
+// MARK: - Set
 
 extension Set: CollectionWithThrowableType where Element: Decodable & Hashable {
     public typealias Throwable = Set<ThrowableValue<Element>>
