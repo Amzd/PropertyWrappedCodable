@@ -19,10 +19,12 @@ public enum CollectionDecodingStrategy<V> {
     case lossy
 }
 
-@propertyWrapper public struct CodableCollection<Value: CollectionWithThrowableType & Codable>: CodableValueProtocol {
-    public typealias Strategy = CollectionDecodingStrategy<Value.Value>
+/// A property wrapper that changes the decoding strategy from the default of throwing when a single value is incorrect to a custom CollectionDecodingStrategy.
+/// Note: Use CodableValue if the default behaviour is prefered.
+@propertyWrapper public struct CodableCollection<Collection: CollectionWithThrowableType & Encodable>: CodableValueProtocol {
+    public typealias Strategy = CollectionDecodingStrategy<Collection.Value>
     
-    public var wrappedValue: Value {
+    public var wrappedValue: Collection {
         get { return box.value ?? { fatalError("Use inside PropertyWrappedCodable or FamilyCodable not Codable!") }() }
         set { box = StrongBox(newValue) } // Create new holder so struct mutates
     }
@@ -33,12 +35,12 @@ public enum CollectionDecodingStrategy<V> {
     
     private var strategy: Strategy
     private var key: String?
-    private var box = StrongBox<Value?>(nil)
+    private var box = StrongBox<Collection?>(nil)
     private var failureBox = StrongBox<[Error]>([])
     
     // MARK: - Custom key
     
-    public init(wrappedValue: Value, _ strategy: Strategy = .lossy, key: String) {
+    public init(wrappedValue: Collection, _ strategy: Strategy = .lossy, key: String) {
         self.strategy = strategy
         self.key = key
         self.wrappedValue = wrappedValue
@@ -50,7 +52,7 @@ public enum CollectionDecodingStrategy<V> {
     
     // MARK: - Infered key
     
-    public init(wrappedValue: Value, _ strategy: Strategy = .lossy) {
+    public init(wrappedValue: Collection, _ strategy: Strategy = .lossy) {
         self.strategy = strategy
         self.wrappedValue = wrappedValue
     }
@@ -65,8 +67,8 @@ public enum CollectionDecodingStrategy<V> {
         assert(label.first == "_")
         let codingKey = AnyCodingKey(stringValue: key ?? String(label.dropFirst()))
         
-        func decode() throws -> Value {
-            func getResultOrSaveError(from throwable: Value.Throwable.Value) -> Value.Value? {
+        func decode() throws -> Collection {
+            func getResultOrSaveError(from throwable: Collection.Throwable.Value) -> Collection.Value? {
                 do {
                     return try throwable.result.get()
                 } catch let error {
@@ -77,11 +79,11 @@ public enum CollectionDecodingStrategy<V> {
             
             switch strategy {
             case .fallbackValue(let fallback):
-                return try container.decode(Value.Throwable.self, forKey: codingKey).mapThrowableValues {
+                return try container.decode(Collection.Throwable.self, forKey: codingKey).mapThrowableValues {
                     getResultOrSaveError(from: $0) ?? fallback
                 }
             case .lossy:
-                return try container.decode(Value.Throwable.self, forKey: codingKey).compactMapThrowableValues {
+                return try container.decode(Collection.Throwable.self, forKey: codingKey).compactMapThrowableValues {
                     getResultOrSaveError(from: $0)
                 }
             }
@@ -103,17 +105,8 @@ public enum CollectionDecodingStrategy<V> {
 // MARK: - Default fallback to nil when using an Optional value in the collection
 // eg: in `@CodableCollection() var pets: [Pet?]` failed Pet objects will fallback to nil
 
-public protocol OptionalType {
-    associatedtype Wrapped
-    static var `nil`: Wrapped { get }
-}
-
-extension Optional: OptionalType {
-    public static var `nil`: Optional<Wrapped> { return .none }
-}
-
-extension CodableCollection where Value.Value: OptionalType, Value.Value.Wrapped == Value.Value {
-    public init(wrappedValue: Value, key: String) {
+extension CodableCollection where Collection.Value: OptionalType, Collection.Value.Wrapped == Collection.Value {
+    public init(wrappedValue: Collection, key: String) {
         self.strategy = .fallbackValue(.nil)
         self.key = key
         self.wrappedValue = wrappedValue
@@ -122,7 +115,7 @@ extension CodableCollection where Value.Value: OptionalType, Value.Value.Wrapped
         self.strategy = .fallbackValue(.nil)
         self.key = key
     }
-    public init(wrappedValue: Value) {
+    public init(wrappedValue: Collection) {
         self.strategy = .fallbackValue(.nil)
         self.wrappedValue = wrappedValue
     }
@@ -130,3 +123,4 @@ extension CodableCollection where Value.Value: OptionalType, Value.Value.Wrapped
         self.strategy = .fallbackValue(.nil)
     }
 }
+
