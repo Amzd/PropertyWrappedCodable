@@ -83,9 +83,6 @@ class CodableCollectionTests: XCTestCase {
         } catch let error {
             XCTFail("\(error)")
         }
-        
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
     
     func testCollectionExample() {
@@ -106,7 +103,7 @@ class CodableCollectionTests: XCTestCase {
             XCTAssert(example.ids3 == [1, 2, nil])
             XCTAssert(example.ids4 == [1, 2, nil])
             XCTAssert(example.ids5 == [1, 2, 0])
-            XCTAssert(example.errors.count == 5)
+            XCTAssert(example.errors.count == 5) // the string values throw errors
         } catch let error {
             XCTFail("\(error)")
         }
