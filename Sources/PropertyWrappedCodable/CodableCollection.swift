@@ -111,19 +111,15 @@ public enum CollectionDecodingStrategy<V> {
 
 extension CodableCollection where Collection.Value: OptionalType, Collection.Value.Wrapped == Collection.Value {
     public init(wrappedValue: Collection, key: String) {
-        self.strategy = .fallbackValue(.nil)
-        self.key = key
-        self.wrappedValue = wrappedValue
+        self.init(wrappedValue: wrappedValue, .fallbackValue(.nil), key: key)
     }
     public init(key: String) {
-        self.strategy = .fallbackValue(.nil)
-        self.key = key
+        self.init(.fallbackValue(.nil), key: key)
     }
     public init(wrappedValue: Collection) {
-        self.strategy = .fallbackValue(.nil)
-        self.wrappedValue = wrappedValue
+        self.init(wrappedValue: wrappedValue, .fallbackValue(.nil))
     }
     public init() {
-        self.strategy = .fallbackValue(.nil)
+        self.init(.fallbackValue(.nil))
     }
 }
