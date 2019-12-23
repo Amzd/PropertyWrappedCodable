@@ -16,6 +16,15 @@ struct Person: PropertyWrappedCodable {
     init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
 }
 
+// The exact same as Person
+struct PersonVerbose: PropertyWrappedCodable {
+    @CodableValue() var name: String
+    @CodableCollection(.lossy, key: "pets") var pets: [Pet]
+    @CodableCollection(.fallbackValue(nil), key: "pets") var petsFallback: [Pet?]
+    
+    init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
+}
+
 struct CollectionExample: PropertyWrappedCodable {
     // defaults to .lossy so failed decoding wont be shown
     @CodableCollection() var ids1: [Int]
@@ -33,14 +42,6 @@ struct CollectionExample: PropertyWrappedCodable {
     var errors: [Error] {
         _ids1.failures + _ids2.failures + _ids3.failures + _ids4.failures + _ids5.failures
     }
-    
-    init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
-}
-
-struct PersonVerbose: PropertyWrappedCodable {
-    @CodableValue() var name: String
-    @CodableCollection(.lossy, key: "pets") var pets: [Pet]
-    @CodableCollection(.fallbackValue(nil), key: "pets") var petsFallback: [Pet?]
     
     init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
 }
