@@ -16,6 +16,25 @@ public struct ThrowableValue<T: Decodable>: Decodable, ThrowableValueProtocol {
     public init(from decoder: Decoder) throws {
         result = Result(catching: { try T(from: decoder) })
     }
+    
+}
+
+extension ThrowableValue: Equatable where T: Equatable {
+    public static func == (lhs: ThrowableValue<T>, rhs: ThrowableValue<T>) -> Bool {
+        let rhs = try? rhs.result.get()
+        let lhs = try? lhs.result.get()
+        return lhs == rhs
+    }
+}
+
+extension ThrowableValue: Hashable where T: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        do {
+            try result.get().hash(into: &hasher)
+        } catch let error {
+            error.localizedDescription.hash(into: &hasher)
+        }
+    }
 }
 
 // MARK: - Protocols to implement if you want your Collection to work with @CodableCollection
@@ -70,20 +89,20 @@ extension Array: ThrowableCollection where Element: ThrowableValueProtocol {
     }
 }
 
-// Need to make ThrowableValue hashable for this to work
-//extension Set: ThrowableCollection where Element: Decodable {
-//    public typealias Throwable = Set<ThrowableValue<Element>>
-//    public typealias Value = Element
-//
-//    public func mapValues<T: ThrowableCollection>(_ transform: (Value) throws -> T.Value) rethrows -> T {
-//        return try map {
-//            try transform($0)
-//        } as! T
-//    }
-//
-//    public func compactMapValues<T: ThrowableCollection>(_ transform: (Value) throws -> T.Value?) rethrows -> T {
-//        return try compactMap {
-//            try transform($0)
-//        } as! T
-//    }
-//}
+
+extension Set: CollectionWithThrowableType where Element: Decodable & Hashable {
+    public typealias Throwable = Set<ThrowableValue<Element>>
+    public typealias Value = Element
+}
+
+extension Set: ThrowableCollection where Element: ThrowableValueProtocol, Element.Wrapped: Hashable {
+    public typealias Parent = Set<Element.Wrapped>
+
+    public func mapThrowableValues(_ transform: (Value) throws -> Value.Wrapped) rethrows -> Parent {
+        return Parent(try map(transform))
+    }
+
+    public func compactMapThrowableValues(_ transform: (Value) throws -> Value.Wrapped?) rethrows -> Parent {
+        return Parent(try compactMap(transform))
+    }
+}
