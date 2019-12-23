@@ -5,7 +5,6 @@
 //  Created by Casper Zandbergen on 11/12/2019.
 //
 
-
 public protocol ThrowableValueProtocol: Decodable {
     associatedtype Wrapped: Decodable
     var result: Result<Wrapped, Error> { get }

@@ -125,6 +125,27 @@ final class PropertyWrappedCodableTests: XCTestCase {
             return
         }
     }
+    
+    func testOptionalDefault() {
+        struct OptionalDefaultExample: PropertyWrappedCodable {
+            @CodableValue() var string: String?
+            @CodableValue() var array: [String]?
+            // CodableCollection does not support optional collections, only optional elements
+            init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
+        }
+        
+        let json = "{}"
+        let data = json.data(using: .utf8)!
+        
+        do {
+            let example = try decoder.decode(OptionalDefaultExample.self, from: data)
+            XCTAssert(example.string == nil)
+            XCTAssert(example.array == nil)
+        } catch let error {
+            XCTFail("\(error)")
+            return
+        }
+    }
 
     static var allTests = [
         ("testMeasureWrapped", testMeasureWrapped),
@@ -132,5 +153,6 @@ final class PropertyWrappedCodableTests: XCTestCase {
         ("testMeasureRuntime", testMeasureRuntime),
         ("testMeasureEcho", testMeasureEcho),
         ("testEncodeResultEqual", testEncodeResultEqual),
+        ("testOptionalDefault", testOptionalDefault),
     ]
 }
