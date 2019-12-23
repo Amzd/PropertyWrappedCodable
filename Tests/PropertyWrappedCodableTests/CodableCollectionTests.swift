@@ -46,17 +46,6 @@ struct CollectionExample: PropertyWrappedCodable {
     init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
 }
 
-struct CollectionExample2: PropertyWrappedCodable {
-    @CodableCollection() var array: [Int]
-    @CodableCollection() var dict: [String: Int]
-    
-    var errors: [Error] {
-        _array.failures + _dict.failures
-    }
-    
-    init(nonWrappedPropertiesFrom decoder: Decoder) { }
-}
-
 class CodableCollectionTests: XCTestCase {
     func testPersonExample() {
         let data = """
@@ -110,6 +99,18 @@ class CodableCollectionTests: XCTestCase {
     }
     
     func testCollectionExample2() {
+        struct CollectionExample2: PropertyWrappedCodable {
+            @CodableCollection() var array: [Int]
+            @CodableCollection() var dict: [String: Int]
+            @CodableCollection() var set: Set<Int>
+            
+            var errors: [Error] {
+                _array.failures + _dict.failures
+            }
+            
+            init(nonWrappedPropertiesFrom decoder: Decoder) { }
+        }
+        
         let json = """
         {
             "array" : [1, 2, "3"],
@@ -117,7 +118,8 @@ class CodableCollectionTests: XCTestCase {
                 "1" : 1,
                 "2" : 2,
                 "3" : "3"
-            }
+            },
+            "set" : [1, 2, "3"]
         }
         """
         let data = json.data(using: .utf8)!
@@ -125,6 +127,7 @@ class CodableCollectionTests: XCTestCase {
             let example = try decoder.decode(CollectionExample2.self, from: data)
             XCTAssert(example.array == [1, 2])
             XCTAssert(example.dict == ["1": 1, "2": 2])
+            XCTAssert(example.set == Set([1, 2]))
             XCTAssert(example.errors.count == 2) // the string values throw errors
         } catch let error {
             XCTFail("\(error)")
