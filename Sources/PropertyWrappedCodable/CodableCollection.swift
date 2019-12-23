@@ -89,10 +89,14 @@ public enum CollectionDecodingStrategy<V> {
             }
         }
         
-        if box.value == nil {
+        do {
             box.value = try decode()
-        } else if let value = try? decode() {
-            box.value = value
+        } catch let error {
+            if box.value == nil {
+                throw error
+            } else {
+                failureBox.value.append(error)
+            }
         }
     }
     
@@ -123,4 +127,3 @@ extension CodableCollection where Collection.Value: OptionalType, Collection.Val
         self.strategy = .fallbackValue(.nil)
     }
 }
-
