@@ -69,6 +69,10 @@ class CodableCollectionTests: XCTestCase {
             XCTAssert(person.petsFallback.first is Cat)
             XCTAssert(person.petsFallback[1] == nil)
             XCTAssert(person.petsFallback.last is Dog)
+            
+            let personEncoded = try encoder.encode(person)
+            let again = try decoder.decode(Person.self, from: personEncoded)
+            XCTAssert(try encoder.encode(again) == personEncoded)
         } catch let error {
             XCTFail("\(error)")
         }
