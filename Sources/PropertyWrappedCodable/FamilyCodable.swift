@@ -37,3 +37,10 @@ public extension FamilyCodable {
         }
     }
 }
+
+extension Array where Element: FamilyCodable {
+    /// Simple compactMap cast to type
+    public func ofType<Member>(_ memberType: Member.Type) -> [Member] {
+        compactMap { $0 as? Member }
+    }
+}
