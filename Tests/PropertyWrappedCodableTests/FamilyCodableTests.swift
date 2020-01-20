@@ -52,11 +52,13 @@ final class FamilyCodableTests: XCTestCase {
         do {
             let pets = try decoder.decode([Pet].self, from: petsData)
             XCTAssert(pets.first is Cat)
+            XCTAssert(pets.ofType(Cat.self).first?.lives == 9)
             XCTAssert(pets.last is Dog)
             XCTAssert(pets.first?.someOtherValue == "no")
             
             let again = try decoder.decode([Pet].self, from: try encoder.encode(pets))
             XCTAssert(again.first is Cat)
+            XCTAssert(again.ofType(Cat.self).first?.lives == 9)
             XCTAssert(again.last is Dog)
             XCTAssert(again == pets)
         } catch let error {
@@ -68,3 +70,5 @@ final class FamilyCodableTests: XCTestCase {
         ("testJson", testJson),
     ]
 }
+
+

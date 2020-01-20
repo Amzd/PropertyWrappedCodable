@@ -103,7 +103,7 @@ class CodableCollectionTests: XCTestCase {
     }
     
     func testCollectionExample2() {
-        struct CollectionExample2: PropertyWrappedCodable {
+        struct CollectionExample2: PropertyWrappedCodable, EmptyInitialiser {
             @CodableCollection() var array: [Int]
             @CodableCollection() var dict: [String: Int]
             @CodableCollection() var set: Set<Int>
@@ -112,7 +112,7 @@ class CodableCollectionTests: XCTestCase {
                 _array.failures + _dict.failures
             }
             
-            init(nonWrappedPropertiesFrom decoder: Decoder) { }
+//            init(nonWrappedPropertiesFrom decoder: Decoder) { }
         }
         
         let json = """

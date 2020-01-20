@@ -1,11 +1,12 @@
 import XCTest
 @testable import PropertyWrappedCodable
+import GenericJSON
 
 struct WrappedExample: PropertyWrappedCodable {
-    @CodableValue var name: String
-    @CodableValue var id: String = "Default"
-    @CodableValue var dog: String?
-    @CodableValue(key: "is_active") var isActive: Bool
+    @CodableValue() var name: String
+    @CodableValue() var id: String = "Default"
+    @CodableValue() var dog: String?
+    @CodableValue(path: "is_active") var isActive: Bool
 
     init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
 }
@@ -33,19 +34,19 @@ struct CodableExample: Codable {
 }
 
 struct RuntimeExample: RuntimePropertyWrappedCodable {
-    @CodableValue var name: String
-    @CodableValue var id: String = "Default"
-    @CodableValue var dog: String?
-    @CodableValue(key: "is_active") var isActive: Bool
+    @CodableValue() var name: String
+    @CodableValue() var id: String = "Default"
+    @CodableValue() var dog: String?
+    @CodableValue(path: "is_active") var isActive: Bool
 
     init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
 }
 
 struct EchoExample: EchoPropertyWrappedCodable {
-    @CodableValue var name: String
-    @CodableValue var id: String = "Default"
-    @CodableValue var dog: String?
-    @CodableValue(key: "is_active") var isActive: Bool
+    @CodableValue() var name: String
+    @CodableValue() var id: String = "Default"
+    @CodableValue() var dog: String?
+    @CodableValue(path: "is_active") var isActive: Bool
 
     init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
 }
@@ -130,7 +131,7 @@ final class PropertyWrappedCodableTests: XCTestCase {
         struct OptionalDefaultExample: PropertyWrappedCodable {
             @CodableValue() var string: String?
             @CodableValue() var array: [String]?
-            // CodableCollection does not support optional collections, only optional elements
+            
             init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
         }
         
@@ -141,6 +142,100 @@ final class PropertyWrappedCodableTests: XCTestCase {
             let example = try decoder.decode(OptionalDefaultExample.self, from: data)
             XCTAssert(example.string == nil)
             XCTAssert(example.array == nil)
+        } catch let error {
+            XCTFail("\(error)")
+            return
+        }
+    }
+    
+    func testFoundationObjectsUsingJSONSerialization() {
+        struct AnyExample: PropertyWrappedCodable {
+            @CodableValue() var string: String?
+            @CodableValue() var json: JSON
+            
+            init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
+        }
+        
+        let json = """
+        {
+            "json": {
+                "dict": { "test": 1 },
+                "array": [
+                    { "type": "Cat", "name": "Garfield", "lives": 9 },
+                    { "type": "Dog", "name": "Pluto" },
+                ]
+            }
+            
+        }
+        """
+        let data = json.data(using: .utf8)!
+        
+        do {
+            let example = try decoder.decode(AnyExample.self, from: data)
+            XCTAssert(example.string == nil)
+            XCTAssert(example.json != nil, "\(example.json)")
+        } catch let error {
+            XCTFail("\(error)")
+            return
+        }
+    }
+    
+    func testCustomPath() {
+        struct Example: PropertyWrappedCodable {
+            @CodableValue(path: "json", "dict", "test") var test: String
+            
+            init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
+        }
+        
+        let json = """
+        {
+            "json": {
+                "dict": {
+                    "test": "Nested"
+                }
+            }
+        }
+        """
+        let data = json.data(using: .utf8)!
+        
+        do {
+            let example = try decoder.decode(Example.self, from: data)
+            XCTAssert(example.test == "Nested")
+            let encoded = try encoder.encode(example)
+            let example2 = try decoder.decode(Example.self, from: encoded)
+            XCTAssert(example.test == example2.test)
+        } catch let error {
+            XCTFail("\(error)")
+            return
+        }
+    }
+    
+    func testID() {
+        struct Example: Codable {
+            var items: [String: Item]
+        }
+        
+        struct Item: PropertyWrappedCodable {
+            @CodableID() var id: String
+            @CodableValue() var name: String
+            
+            init(nonWrappedPropertiesFrom decoder: Decoder) throws { }
+        }
+        
+        let json = """
+        {
+            "items": {
+                "id_0": { "name": "Casper" },
+                "id_1": { "name": "Zandbergen" }
+            }
+        }
+        """
+        let data = json.data(using: .utf8)!
+        
+        do {
+            let example = try decoder.decode(Example.self, from: data)
+            XCTAssert(example.items.count == 2)
+            XCTAssert(example.items["id_0"]?.id == "id_0", example.items.first?.value.id ?? "")
         } catch let error {
             XCTFail("\(error)")
             return
