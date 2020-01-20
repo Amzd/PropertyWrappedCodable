@@ -25,7 +25,7 @@ public enum CollectionDecodingStrategy<V> {
     public typealias Strategy = CollectionDecodingStrategy<Collection.Value>
     
     public var wrappedValue: Collection {
-        get { return box.value ?? { fatalError("Use inside PropertyWrappedCodable or FamilyCodable not Codable!") }() }
+        get { return box.value ?? { fatalError(codableValueOutsidePropertyWrappedCodable) }() }
         set { box = StrongBox(newValue) } // Create new holder so struct mutates
     }
     
