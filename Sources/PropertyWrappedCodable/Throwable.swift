@@ -47,9 +47,9 @@ public protocol CollectionWithThrowableType: Collection {
     associatedtype Value: Decodable
 }
 
-public protocol ThrowableCollection: Collection {
+public protocol ThrowableCollection: Collection where Value: ThrowableValueProtocol {
     associatedtype Parent: Decodable & CollectionWithThrowableType where Parent.Value == Value.Wrapped
-    associatedtype Value: ThrowableValueProtocol
+    associatedtype Value
     
     func mapThrowableValues(_ transform: (Value) throws -> Parent.Value) rethrows -> Parent
     func compactMapThrowableValues(_ transform: (Value) throws -> Parent.Value?) rethrows -> Parent
