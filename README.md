@@ -42,6 +42,30 @@ struct CodableExample: Codable {
 }
 ```
 
+## CodableID
+
+`@CodableID` refers to the key of the object that is being decoded.
+
+```swift
+struct Example: PropertyWrappedCodable {
+    @CodableID var id: String 
+    @CodableValue var name: String
+    @CodableValue var isActive: Bool
+    
+    init(nonWrappedPropertiesFrom decoder: Decoder) throws {}
+}
+```
+```swift
+let json = """
+{ 
+    "example-id": { "name": "Amzd", "isActive": true }
+}
+"""
+let data = json.data(using: .utf8)!
+let example = try decoder.decode([String: Example].self, from: data) 
+print(example.values.first?.id) // "example-id"
+```
+
 ## FamilyCodable
 
 Let the data decide the type
