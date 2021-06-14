@@ -10,7 +10,8 @@ struct WrappedExample: PropertyWrappedCodable {
     @CodableValue var name: String
     @CodableValue var id: String = "Default"
     @CodableValue var dog: String?
-    @CodableValue(key: "is_active") var isActive: Bool
+    @CodableValue(path: "is_active") var isActive: Bool
+    @CodableValue(path: "nested", "value") var nestedValue: String
     
     init(nonWrappedPropertiesFrom decoder: Decoder) throws {}
 }
@@ -24,12 +25,18 @@ struct CodableExample: Codable {
     var id: String
     var dog: String
     var isActive: Bool
+    var nested: Nested
+    
+    struct Nested: Codable {
+        var value: String
+    }
     
     enum CodingKeys: String, CodingKey {
         case name
         case id
         case dog
         case isActive = "is_active"
+        case nested
     }
     
     init(from decoder: Decoder) throws {
@@ -38,6 +45,7 @@ struct CodableExample: Codable {
         id = (try? container.decode(String.self, forKey: .id)) ?? "Default"
         dog = try container.decode(String.self, forKey: .dog)
         isActive = try container.decode(Bool.self, forKey: .isActive)
+        nested = try container.decode(Nested.self, forKey: .nested)
     }
 }
 ```
