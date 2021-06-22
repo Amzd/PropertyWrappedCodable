@@ -1,9 +1,14 @@
 public protocol PropertyWrappedCodable: Codable {
     /// Warning: Property wrapped values arent available here yet!
     init(nonWrappedPropertiesFrom decoder: Decoder) throws
+    typealias CodableValueKeyPaths = [String: AnyKeyPath]
+    /// Implement if you dont want to use Mirror. This is way faster than using Mirror.
+    var keyPathsForCodableValues: CodableValueKeyPaths? { get }
 }
 
 public extension PropertyWrappedCodable {
+    var keyPathsForCodableValues: CodableValueKeyPaths? { nil }
+    
     init(from decoder: Decoder) throws {
         try self.init(wrappedPropertiesFrom: decoder)
     }
@@ -12,13 +17,21 @@ public extension PropertyWrappedCodable {
     init(wrappedPropertiesFrom decoder: Decoder) throws {
         try self.init(nonWrappedPropertiesFrom: decoder)
         let container = try decoder.container(keyedBy: AnyCodingKey.self)
-        var optionalMirror: Mirror? = Mirror(reflecting: self)
-        while let mirror = optionalMirror {
-            for child in mirror.children {
-                let value = child.value as? CodableValueProtocol
-                try value?.initValue(with: child.label!, from: container)
+        
+        if let keyPaths = keyPathsForCodableValues {
+            for (label, keyPath) in keyPaths {
+                let value = self[keyPath: keyPath] as? CodableValueProtocol
+                try value?.initValue(with: label, from: container)
             }
-            optionalMirror = mirror.superclassMirror
+        } else {
+            var optionalMirror: Mirror? = Mirror(reflecting: self)
+            while let mirror = optionalMirror {
+                for child in mirror.children {
+                    let value = child.value as? CodableValueProtocol
+                    try value?.initValue(with: child.label!, from: container)
+                }
+                optionalMirror = mirror.superclassMirror
+            }
         }
     }
     
@@ -37,5 +50,12 @@ public extension PropertyWrappedCodable {
             }
             optionalMirror = mirror.superclassMirror
         }
+    }
+}
+
+extension AnyKeyPath {
+    /// Returns key path represented as a string
+    var asString: String? {
+        return _kvcKeyPathString?.description
     }
 }
